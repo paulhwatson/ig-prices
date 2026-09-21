@@ -1,0 +1,6 @@
+pandas
+lightstreamer-client-lib
+pyarrow
+requests
+python-dotenv
+pytest

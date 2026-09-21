@@ -1,0 +1,39 @@
+# Behaviour of the hourly price collector. Secrets live in .env, not here.
+# Everything is collected from IG; see [ig] below and config/symbols.toml.
+
+[store]
+# Hourly parquet lands beside the existing 1min/daily stores, as
+# <root>/<group>/1hour/<symbol>.parquet - see prices/store.py.
+root = "/Users/Paul/trading_data/prices"
+
+[update]
+# On an incremental update, re-fetch this many days of already-stored bars.
+# The most recent stored bar is usually still forming when it is first seen,
+# so it has to be overwritten later with the settled values.
+overlap_days = 2
+
+[ig]
+# IG is the only source. It is the basis these instruments are actually traded
+# on, which matters more than convenience: a hedge ratio has to be fitted on
+# the quotes you execute against, and a series from another vendor is on
+# another scale entirely.
+#
+# History is bounded at roughly a year (probed 2026-09-21: one year back
+# returns bars, two years back returns nothing) and drawn from a weekly
+# allowance of 10,000 data points. `prices stream` costs nothing and fills
+# forward, so the allowance is only ever spent deepening the past.
+max_history_days = 365
+chunk_days = 7
+# A year of hourly for one instrument is ~6,000 points, so one instrument fits
+# comfortably inside a week's allowance and four do not - hence the per-run cap.
+max_points_per_run = 6000
+min_allowance_reserve = 500
+requests_per_minute = 30
+timeout_seconds = 30
+# A near-24h commodity is ~115 hourly bars a week, so a full year for four
+# instruments is ~24,000 points against a 10,000/week allowance. 90 days for
+# all four is ~6,000, which fits one week; re-run with --since to go deeper.
+backfill_days = 90
+# IG stamps REST bars in the account's local time, not UTC; streamed candles
+# arrive as epoch UTC and are converted into this zone so the two agree.
+timezone = "Europe/London"

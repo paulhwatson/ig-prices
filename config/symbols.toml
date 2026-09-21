@@ -1,0 +1,73 @@
+# Instruments to collect. Everything comes from IG.
+#
+# Each group is a directory under the store root:
+#   <root>/<group>/1hour/<symbol>.parquet
+#
+# WHY IG AND ONLY IG
+#
+# IG streams its own derived markets - commodities, spot metals, FX and index
+# CFDs - at zero delay, and serves ~1 year of hourly history for them. It does
+# not stream shares or ETFs (streamingPricesAvailable = false, delayTime = 20),
+# which is why none appear here.
+#
+# FMP was the original source and has been dropped. It would not sell four of
+# these at all on this plan (WTI, gasoline, natural gas, heating oil: HTTP 402),
+# and more importantly it quotes on a different scale - gasoline is ~2.77 from
+# FMP and ~32778 on IG. Mixing the two makes any cross-instrument model
+# meaningless, and IG is the basis these are actually executed on, which is the
+# one that has to be right. IG also gives ~3x more history for index CFDs,
+# which trade nearly around the clock where FMP's cash indices cover only
+# market hours.
+#
+# Symbol names are kept from the FMP era so existing readers of the store keep
+# working. They name the series, not the vendor: every file here is IG data.
+#
+# `ig_epic` is verified with `prices verify`; `source` defaults to "ig".
+
+[groups.energy]
+description = "Energy commodities - the legs the ../oil-pair pairs trade, all on one basis"
+instruments = [
+    { symbol = "BZUSD", ig_epic = "CC.D.LCO.USS.IP", ig_name = "Oil - Brent Crude" },
+    { symbol = "CLUSD", ig_epic = "CC.D.CL.USS.IP",  ig_name = "Oil - US Crude" },
+    { symbol = "RBUSD", ig_epic = "CC.D.RB.USS.IP",  ig_name = "No Lead Gasoline" },
+    { symbol = "HOUSD", ig_epic = "CC.D.HO.USS.IP",  ig_name = "Heating Oil" },
+    { symbol = "NGUSD", ig_epic = "CC.D.NG.USS.IP",  ig_name = "Natural Gas" },
+]
+
+[groups.metals]
+description = "Spot metals"
+instruments = [
+    { symbol = "GCUSD", ig_epic = "CS.D.USCGC.TODAY.IP", ig_name = "Spot Gold" },
+    { symbol = "SIUSD", ig_epic = "CS.D.USCSI.TODAY.IP", ig_name = "Spot Silver" },
+]
+
+[groups.indices]
+description = "Index CFDs. These trade nearly around the clock, so they carry ~16 bars a day where a cash index would give ~7."
+instruments = [
+    { symbol = "ESUSD",     ig_epic = "IX.D.SPTRD.DAILY.IP",    ig_name = "US 500" },
+    { symbol = "^DJI",      ig_epic = "IX.D.DOW.DAILY.IP",      ig_name = "Wall Street" },
+    { symbol = "^RUT",      ig_epic = "IX.D.RUSSELL.DAILY.IP",  ig_name = "US Russell 2000" },
+    { symbol = "^FTSE",     ig_epic = "IX.D.FTSE.DAILY.IP",     ig_name = "FTSE 100" },
+    { symbol = "^STOXX50E", ig_epic = "IX.D.STXE.CASH.IP",      ig_name = "EU Stocks 50" },
+    { symbol = "^N225",     ig_epic = "IX.D.NIKKEI.DAILY.IP",   ig_name = "Japan 225" },
+    { symbol = "^HSI",      ig_epic = "IX.D.HANGSENG.DAILY.IP", ig_name = "Hong Kong HS50" },
+    # VIX streams, but IG refuses its history with
+    # unauthorised.access.to.equity.exception - so it has no backfill and
+    # fills forward from `prices stream` only.
+    { symbol = "^VIX",      ig_epic = "CC.D.VIX.USS.IP",        ig_name = "Volatility Index" },
+]
+
+[groups.fx]
+description = "The major pairs IG streams"
+instruments = [
+    { symbol = "EURUSD", ig_epic = "CS.D.EURUSD.TODAY.IP", ig_name = "EUR/USD" },
+    { symbol = "GBPUSD", ig_epic = "CS.D.GBPUSD.TODAY.IP", ig_name = "GBP/USD" },
+    { symbol = "USDJPY", ig_epic = "CS.D.USDJPY.TODAY.IP", ig_name = "USD/JPY" },
+    { symbol = "USDCAD", ig_epic = "CS.D.USDCAD.TODAY.IP", ig_name = "USD/CAD" },
+    { symbol = "USDCHF", ig_epic = "CS.D.USDCHF.TODAY.IP", ig_name = "USD/CHF" },
+    { symbol = "AUDUSD", ig_epic = "CS.D.AUDUSD.TODAY.IP", ig_name = "AUD/USD" },
+    { symbol = "EURCHF", ig_epic = "CS.D.EURCHF.TODAY.IP", ig_name = "EUR/CHF" },
+    { symbol = "EURGBP", ig_epic = "CS.D.EURGBP.TODAY.IP", ig_name = "EUR/GBP" },
+    { symbol = "EURJPY", ig_epic = "CS.D.EURJPY.TODAY.IP", ig_name = "EUR/JPY" },
+    { symbol = "GBPEUR", ig_epic = "CS.D.GBPEUR.TODAY.IP", ig_name = "GBP/EUR" },
+]
