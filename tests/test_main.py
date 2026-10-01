@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from prices import main as cli
-from prices.symbols import Instrument, SymbolGroup, SymbolGroups
+from ig_prices import main as cli
+from ig_prices.symbols import Instrument, SymbolGroup, SymbolGroups
 
 
 def groups() -> SymbolGroups:

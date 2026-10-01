@@ -15,7 +15,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_CONFIG_PATH = REPO_ROOT / "config" / "prices.toml"
+DEFAULT_CONFIG_PATH = REPO_ROOT / "config" / "ig-prices.toml"
 DEFAULT_SYMBOLS_PATH = REPO_ROOT / "config" / "symbols.toml"
 
 _FALLBACK_ENV_PATH = Path.home() / "trading" / ".env"
@@ -108,7 +108,7 @@ def load_ig_credentials() -> IGCredentials:
     if missing:
         raise RuntimeError(
             f"Missing IG credentials: {', '.join(missing)}. These are only needed "
-            f"for `prices verify`; set them in .env or {_FALLBACK_ENV_PATH}."
+            f"for `ig-prices verify`; set them in .env or {_FALLBACK_ENV_PATH}."
         )
 
     return IGCredentials(

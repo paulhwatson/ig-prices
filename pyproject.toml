@@ -3,7 +3,7 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "prices"
+name = "ig-prices"
 version = "0.1.0"
 description = "Hourly OHLCV price collection from Financial Modeling Prep"
 requires-python = ">=3.11"
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-prices = "prices.main:main"
+ig-prices = "ig_prices.main:main"
 
 [tool.setuptools.packages.find]
-include = ["prices*"]
+include = ["ig_prices*"]

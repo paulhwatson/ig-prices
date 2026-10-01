@@ -1,4 +1,4 @@
-# prices — hourly OHLCV collection from IG
+# ig-prices — hourly OHLCV collection from IG
 
 A standalone collector that pulls hourly bars from IG and stores them as
 parquet, one file per symbol. Self-contained — no dependency on
@@ -48,19 +48,19 @@ zero delay, and does not stream shares or ETFs, which come back
 no equities or ETFs here.
 
 Every entry in `config/symbols.toml` names its IG epic, the loader rejects any
-that doesn't, and `prices verify` re-checks all 25 against IG.
+that doesn't, and `ig-prices verify` re-checks all 25 against IG.
 
 ## Two ways in, and why both exist
 
 | | what it does | cost |
 |---|---|---|
-| `prices stream` | subscribes to `CHART:<epic>:HOUR` and stores each candle as it closes | **nothing** |
-| `prices backfill` | extends history further into the past | weekly allowance |
-| `prices update` | tops a symbol up to now | weekly allowance |
+| `ig-prices stream` | subscribes to `CHART:<epic>:HOUR` and stores each candle as it closes | **nothing** |
+| `ig-prices backfill` | extends history further into the past | weekly allowance |
+| `ig-prices update` | tops a symbol up to now | weekly allowance |
 
 Once the stream is running, history only ever grows forward for free, and the
 metered REST calls are needed only to deepen the past. The only scheduled job
-is the stream; run `prices backfill` by hand when you want more history.
+is the stream; run `ig-prices backfill` by hand when you want more history.
 
 ### IG's limits, measured 2026-09-21
 
@@ -99,7 +99,7 @@ python3 -m venv .venv
 ./.venv/bin/pip install -e .
 ```
 
-No `.env` is needed on this machine: `prices/settings.py` falls back to
+No `.env` is needed on this machine: `ig_prices/settings.py` falls back to
 `~/trading/.env`, which already has the `IG_DEMO_*` login. Elsewhere,
 `cp .env.example .env` and fill it in. Demo credentials — this app only reads
 market data, so it has no business holding live ones.
@@ -107,18 +107,18 @@ market data, so it has no business holding live ones.
 ## Usage
 
 ```bash
-./.venv/bin/python -m prices.main stream                          # live candles, free
-./.venv/bin/python -m prices.main backfill                        # deepen history
-./.venv/bin/python -m prices.main update                          # top up to now
-./.venv/bin/python -m prices.main update --group energy --symbol BZUSD --since 2025-01-01
-./.venv/bin/python -m prices.main groups                          # what's configured
-./.venv/bin/python -m prices.main verify                          # re-check streamability
-./.venv/bin/python -m prices.main show --group energy --symbol BZUSD
+./.venv/bin/python -m ig_prices.main stream                          # live candles, free
+./.venv/bin/python -m ig_prices.main backfill                        # deepen history
+./.venv/bin/python -m ig_prices.main update                          # top up to now
+./.venv/bin/python -m ig_prices.main update --group energy --symbol BZUSD --since 2025-01-01
+./.venv/bin/python -m ig_prices.main groups                          # what's configured
+./.venv/bin/python -m ig_prices.main verify                          # re-check streamability
+./.venv/bin/python -m ig_prices.main show --group energy --symbol BZUSD
 ```
 
 `update`/`backfill` exit non-zero if any symbol failed; a spent allowance is
 not a failure, it's a "come back next week". `verify` exits non-zero if any
-epic has stopped streaming. Logs go to `logs/prices.log` (rotating, 10MB × 5).
+epic has stopped streaming. Logs go to `logs/ig-prices.log` (rotating, 10MB × 5).
 
 ## Scheduling
 
@@ -142,8 +142,8 @@ a wake.
 1. Find its IG epic — `search_markets` in `../oil-pair`, or IG's platform. It
    must be a rolling contract (`DFB`/`TODAY`), not a dated expiry.
 2. Add it to the right group in `config/symbols.toml`.
-3. `prices verify` — confirms IG streams it.
-4. `prices update --group <group> --symbol <symbol>` — confirms IG serves it.
+3. `ig-prices verify` — confirms IG streams it.
+4. `ig-prices update --group <group> --symbol <symbol>` — confirms IG serves it.
 
 An entry with no `ig_epic` is refused at load time, so nothing can quietly
 start being collected that nobody has checked. Two symbols on one epic are

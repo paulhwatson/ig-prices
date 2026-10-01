@@ -3,7 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from prices import store
+from ig_prices import store
 from tests.conftest import bars
 
 

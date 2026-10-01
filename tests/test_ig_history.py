@@ -7,8 +7,8 @@ import json
 import pandas as pd
 import pytest
 
-from prices.ig import AllowanceExceededError, IGClient, IGError, RateLimitedError
-from prices.settings import IGCredentials
+from ig_prices.ig import AllowanceExceededError, IGClient, IGError, RateLimitedError
+from ig_prices.settings import IGCredentials
 
 CREDENTIALS = IGCredentials(username="u", password="p", api_key="k", acc_number="A1")
 START = pd.Timestamp("2026-09-01")
@@ -143,7 +143,7 @@ def test_the_budget_carries_across_symbols():
 def test_a_rate_limit_is_retried_not_treated_as_a_spent_allowance(monkeypatch):
     """IG returns 403 for both; only the error code tells them apart, and
     giving up on a burst limit wastes a week of waiting."""
-    monkeypatch.setattr("prices.ig.time.sleep", lambda _: None)
+    monkeypatch.setattr("ig_prices.ig.time.sleep", lambda _: None)
     c, session = client([
         FakeResponse(status_code=403, text='{"errorCode":"error.public-api.exceeded-api-key-allowance"}'),
         FakeResponse(payload=prices_page([bar(1)])),
@@ -156,7 +156,7 @@ def test_a_rate_limit_is_retried_not_treated_as_a_spent_allowance(monkeypatch):
 
 
 def test_a_spent_data_allowance_is_not_retried(monkeypatch):
-    monkeypatch.setattr("prices.ig.time.sleep", lambda _: None)
+    monkeypatch.setattr("ig_prices.ig.time.sleep", lambda _: None)
     c, session = client([
         FakeResponse(
             status_code=403,
@@ -171,7 +171,7 @@ def test_a_spent_data_allowance_is_not_retried(monkeypatch):
 
 
 def test_persistent_rate_limiting_eventually_gives_up(monkeypatch):
-    monkeypatch.setattr("prices.ig.time.sleep", lambda _: None)
+    monkeypatch.setattr("ig_prices.ig.time.sleep", lambda _: None)
     c, _ = client(
         [FakeResponse(status_code=403, text='{"errorCode":"error.public-api.exceeded-api-key-allowance"}')] * 10
     )
@@ -182,7 +182,7 @@ def test_persistent_rate_limiting_eventually_gives_up(monkeypatch):
 
 def test_bars_already_paid_for_survive_a_limit(monkeypatch):
     """Discarding them would mean paying the allowance twice for the same data."""
-    monkeypatch.setattr("prices.ig.time.sleep", lambda _: None)
+    monkeypatch.setattr("ig_prices.ig.time.sleep", lambda _: None)
     c, _ = client([
         FakeResponse(payload=prices_page([bar(1), bar(2)])),
         FakeResponse(

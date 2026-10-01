@@ -3,7 +3,7 @@
 
 [store]
 # Hourly parquet lands beside the existing 1min/daily stores, as
-# <root>/<group>/1hour/<symbol>.parquet - see prices/store.py.
+# <root>/<group>/1hour/<symbol>.parquet - see ig_prices/store.py.
 root = "/Users/Paul/trading_data/prices"
 
 [update]
@@ -20,7 +20,7 @@ overlap_days = 2
 #
 # History is bounded at roughly a year (probed 2026-09-21: one year back
 # returns bars, two years back returns nothing) and drawn from a weekly
-# allowance of 10,000 data points. `prices stream` costs nothing and fills
+# allowance of 10,000 data points. `ig-prices stream` costs nothing and fills
 # forward, so the allowance is only ever spent deepening the past.
 max_history_days = 365
 chunk_days = 7

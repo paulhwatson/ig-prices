@@ -15,9 +15,9 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-LABEL="com.paulwatson.prices.weekly"
+LABEL="com.paulwatson.ig-prices.weekly"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
-STREAM_LABEL="com.paulwatson.prices.stream"
+STREAM_LABEL="com.paulwatson.ig-prices.stream"
 STREAM_PLIST="$HOME/Library/LaunchAgents/$STREAM_LABEL.plist"
 
 write_stream_plist() {
@@ -58,7 +58,7 @@ case "${1:-}" in
         launchctl unload "$STREAM_PLIST" 2>/dev/null || true
         launchctl load "$STREAM_PLIST"
         echo "Installed $STREAM_LABEL - keeps symbols current, restarted if it drops."
-        echo "Logs: $REPO_ROOT/logs/prices.log (stream.{out,err}.log are launchd's"
+        echo "Logs: $REPO_ROOT/logs/ig-prices.log (stream.{out,err}.log are launchd's"
         echo "      own capture and are truncated on every restart)"
         ;;
     uninstall-stream)

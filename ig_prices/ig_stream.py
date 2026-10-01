@@ -1,6 +1,6 @@
 """Live hourly candles from IG's Lightstreamer feed.
 
-The REST backfill in prices/ig.py draws on a weekly allowance; this does not.
+The REST backfill in ig_prices/ig.py draws on a weekly allowance; this does not.
 CHART:<epic>:HOUR pushes a consolidated hourly candle, so once a symbol is
 backfilled this keeps it current for free, indefinitely.
 
@@ -23,7 +23,7 @@ from dataclasses import dataclass
 import pandas as pd
 from lightstreamer.client import LightstreamerClient, Subscription, SubscriptionListener
 
-from prices.ig import IGClient, IGError
+from ig_prices.ig import IGClient, IGError
 
 logger = logging.getLogger(__name__)
 

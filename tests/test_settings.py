@@ -4,17 +4,17 @@ from pathlib import Path
 
 import pytest
 
-from prices.settings import (
+from ig_prices.settings import (
     DEFAULT_CONFIG_PATH,
     DEFAULT_SYMBOLS_PATH,
     INTERVAL,
     load_config,
 )
-from prices.symbols import load_symbol_groups
+from ig_prices.symbols import load_symbol_groups
 
 
 def write_config(tmp_path: Path, body: str) -> Path:
-    path = tmp_path / "prices.toml"
+    path = tmp_path / "ig-prices.toml"
     path.write_text(body)
     return path
 

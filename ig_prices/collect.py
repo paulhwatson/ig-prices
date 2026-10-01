@@ -12,9 +12,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from prices import store
-from prices.ig_stream import Candle
-from prices.symbols import Instrument
+from ig_prices import store
+from ig_prices.ig_stream import Candle
+from ig_prices.symbols import Instrument
 
 logger = logging.getLogger(__name__)
 

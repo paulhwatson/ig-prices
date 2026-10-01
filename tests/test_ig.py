@@ -4,8 +4,8 @@ import json
 
 import pytest
 
-from prices.ig import DEMO_BASE_URL, LIVE_BASE_URL, IGClient, IGError
-from prices.settings import IGCredentials
+from ig_prices.ig import DEMO_BASE_URL, LIVE_BASE_URL, IGClient, IGError
+from ig_prices.settings import IGCredentials
 
 CREDENTIALS = IGCredentials(username="u", password="p", api_key="k")
 

@@ -23,7 +23,7 @@ def configure_logging(log_dir: Path = DEFAULT_LOG_DIR, level: str = "INFO") -> N
     formatter = logging.Formatter(_FORMAT)
 
     file_handler = RotatingFileHandler(
-        log_dir / "prices.log", maxBytes=10 * 1024 * 1024, backupCount=5
+        log_dir / "ig-prices.log", maxBytes=10 * 1024 * 1024, backupCount=5
     )
     file_handler.setFormatter(formatter)
 

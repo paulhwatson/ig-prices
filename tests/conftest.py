@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from prices.settings import Config, IGConfig, StoreConfig, UpdateConfig
+from ig_prices.settings import Config, IGConfig, StoreConfig, UpdateConfig
 
 
 @pytest.fixture

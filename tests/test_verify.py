@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from prices.ig import MarketStatus
-from prices.symbols import Instrument, SymbolGroup, SymbolGroups
-from prices.verify import Verdict, verify
+from ig_prices.ig import MarketStatus
+from ig_prices.symbols import Instrument, SymbolGroup, SymbolGroups
+from ig_prices.verify import Verdict, verify
 
 
 def status(epic, streamable=True, delay=0):

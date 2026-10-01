@@ -4,7 +4,7 @@ Every instrument must name the IG epic it corresponds to - it is both the
 thing collected and the thing checked. This app only collects prices for
 instruments streamable on IG, and an unverifiable claim of streamability is no
 use, so a config entry without an epic is rejected rather than quietly
-collected. `prices verify` re-checks them all against IG.
+collected. `ig-prices verify` re-checks them all against IG.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from prices.settings import DEFAULT_SYMBOLS_PATH
+from ig_prices.settings import DEFAULT_SYMBOLS_PATH
 
 
 # IG is the only source today. The field is kept because every stored row
@@ -134,7 +134,7 @@ def _parse_instruments(
             raise RuntimeError(
                 f"{path}: {group}/{symbol} has no ig_epic. Only instruments that "
                 f"are streamable on IG are collected - find the epic and run "
-                f"`prices verify` before adding it."
+                f"`ig-prices verify` before adding it."
             )
 
         source = str(entry.get("source", group_source))

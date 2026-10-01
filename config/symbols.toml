@@ -22,7 +22,7 @@
 # Symbol names are kept from the FMP era so existing readers of the store keep
 # working. They name the series, not the vendor: every file here is IG data.
 #
-# `ig_epic` is verified with `prices verify`; `source` defaults to "ig".
+# `ig_epic` is verified with `ig-prices verify`; `source` defaults to "ig".
 
 [groups.energy]
 description = "Energy commodities - the legs the ../oil-pair pairs trade, all on one basis"
@@ -53,7 +53,7 @@ instruments = [
     { symbol = "^HSI",      ig_epic = "IX.D.HANGSENG.DAILY.IP", ig_name = "Hong Kong HS50" },
     # VIX streams, but IG refuses its history with
     # unauthorised.access.to.equity.exception - so it has no backfill and
-    # fills forward from `prices stream` only.
+    # fills forward from `ig-prices stream` only.
     { symbol = "^VIX",      ig_epic = "CC.D.VIX.USS.IP",        ig_name = "Volatility Index" },
 ]
 

@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from prices.symbols import load_symbol_groups
+from ig_prices.symbols import load_symbol_groups
 
 
 def write_symbols(tmp_path: Path, body: str) -> Path:

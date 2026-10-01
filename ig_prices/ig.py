@@ -27,7 +27,7 @@ from dataclasses import dataclass
 
 import requests
 
-from prices.settings import IGCredentials
+from ig_prices.settings import IGCredentials
 
 logger = logging.getLogger(__name__)
 

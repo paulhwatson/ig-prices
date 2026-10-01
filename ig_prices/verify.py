@@ -12,8 +12,8 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 
-from prices.ig import IGClient, MarketStatus
-from prices.symbols import SymbolGroups
+from ig_prices.ig import IGClient, MarketStatus
+from ig_prices.symbols import SymbolGroups
 
 logger = logging.getLogger(__name__)
 

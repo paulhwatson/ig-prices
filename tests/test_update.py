@@ -3,9 +3,9 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from prices import store, update
-from prices.ig import AllowanceExceededError, IGError
-from prices.symbols import Instrument, SymbolGroup
+from ig_prices import store, update
+from ig_prices.ig import AllowanceExceededError, IGError
+from ig_prices.symbols import Instrument, SymbolGroup
 from tests.conftest import FakeClient, bars
 
 NOW = pd.Timestamp("2026-09-18 12:00:00")

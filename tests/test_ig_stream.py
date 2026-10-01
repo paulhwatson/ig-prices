@@ -10,10 +10,10 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from prices import store
-from prices.collect import CandleWriter
-from prices.ig_stream import Candle, parse_candle
-from prices.symbols import Instrument
+from ig_prices import store
+from ig_prices.collect import CandleWriter
+from ig_prices.ig_stream import Candle, parse_candle
+from ig_prices.symbols import Instrument
 
 EPIC = "CC.D.RB.USS.IP"
 # UTM is epoch-UTC milliseconds; 16:00 UTC is 17:00 in London.

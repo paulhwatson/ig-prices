@@ -1,13 +1,13 @@
 """Incremental pulls: work out what each symbol is missing, fetch only that.
 
-Everything comes from IG, whose history is metered - see prices/ig.py. So a run
+Everything comes from IG, whose history is metered - see ig_prices/ig.py. So a run
 is bounded by a budget as well as by dates, and stopping early with a partial
 result is normal rather than a failure.
 
 Two directions of travel:
 
 - `update_group` tops a symbol up to now. Cheap, and mostly unnecessary once
-  `prices stream` is running, since that fills forward for free.
+  `ig-prices stream` is running, since that fills forward for free.
 - `backfill_group` extends a symbol further into the past, as much as the
   week's allowance permits. Run repeatedly, it deepens the history a slice at
   a time.
@@ -26,10 +26,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from prices import store
-from prices.ig import AllowanceExceededError, IGError
-from prices.settings import Config
-from prices.symbols import Instrument, SymbolGroup
+from ig_prices import store
+from ig_prices.ig import AllowanceExceededError, IGError
+from ig_prices.settings import Config
+from ig_prices.symbols import Instrument, SymbolGroup
 
 logger = logging.getLogger(__name__)
 

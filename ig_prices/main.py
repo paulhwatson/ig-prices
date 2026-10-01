@@ -1,12 +1,12 @@
 """Command line entry point.
 
-    python -m prices.main stream                      # live candles, costs no allowance
-    python -m prices.main update                      # top up to now
-    python -m prices.main backfill                    # extend history further back
-    python -m prices.main update --group energy --symbol BZUSD --since 2025-01-01
-    python -m prices.main groups
-    python -m prices.main verify                      # re-check IG streamability
-    python -m prices.main show --group energy --symbol BZUSD
+    python -m ig_prices.main stream                      # live candles, costs no allowance
+    python -m ig_prices.main update                      # top up to now
+    python -m ig_prices.main backfill                    # extend history further back
+    python -m ig_prices.main update --group energy --symbol BZUSD --since 2025-01-01
+    python -m ig_prices.main groups
+    python -m ig_prices.main verify                      # re-check IG streamability
+    python -m ig_prices.main show --group energy --symbol BZUSD
 
 Exits non-zero if any symbol failed, so an unattended run surfaces a problem
 instead of logging it into a file nobody reads.
@@ -20,13 +20,13 @@ import sys
 
 import pandas as pd
 
-from prices import store, update, verify as verify_module
-from prices.ig import IGClient, IGError
-from prices.logging_setup import configure_logging
-from prices.settings import INTERVAL, load_config, load_ig_credentials
-from prices.symbols import SymbolGroup, load_symbol_groups
+from ig_prices import store, update, verify as verify_module
+from ig_prices.ig import IGClient, IGError
+from ig_prices.logging_setup import configure_logging
+from ig_prices.settings import INTERVAL, load_config, load_ig_credentials
+from ig_prices.symbols import SymbolGroup, load_symbol_groups
 
-logger = logging.getLogger("prices")
+logger = logging.getLogger("ig_prices")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -115,8 +115,8 @@ def _cmd_stream(config, groups, args) -> int:
     Runs until interrupted. Costs no historical-data allowance, which is the
     point: the REST backfill is metered, this is not.
     """
-    from prices.collect import CandleWriter
-    from prices.ig_stream import HourlyCandleStream
+    from ig_prices.collect import CandleWriter
+    from ig_prices.ig_stream import HourlyCandleStream
 
     if args.group:
         try:
@@ -274,7 +274,7 @@ def _targets(groups, args) -> list[tuple[SymbolGroup, list[str] | None]]:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="prices", description=f"Collect {INTERVAL} OHLCV bars from IG."
+        prog="ig-prices", description=f"Collect {INTERVAL} OHLCV bars from IG."
     )
     parser.add_argument(
         "--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"]
@@ -282,7 +282,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     # Shared so --log-level works on either side of the subcommand. SUPPRESS
     # matters: without it argparse writes the subparser's own default over a
-    # value the top-level parser already parsed, so `prices --log-level DEBUG
+    # value the top-level parser already parsed, so `ig-prices --log-level DEBUG
     # update` would silently run at INFO.
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument(
@@ -292,8 +292,8 @@ def _build_parser() -> argparse.ArgumentParser:
     )
 
     subparsers = parser.add_subparsers(dest="command")
-    # `prices` with no subcommand is the unattended case (see the schedule
-    # script), so it has to behave exactly like a bare `prices update`.
+    # `ig-prices` with no subcommand is the unattended case (see the schedule
+    # script), so it has to behave exactly like a bare `ig-prices update`.
     parser.set_defaults(command="update", group=None, symbol=None, since=None, full=False)
 
     update_parser = subparsers.add_parser(

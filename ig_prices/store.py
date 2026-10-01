@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from prices.settings import INTERVAL
+from ig_prices.settings import INTERVAL
 
 logger = logging.getLogger(__name__)
 
