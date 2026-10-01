@@ -59,8 +59,8 @@ that doesn't, and `prices verify` re-checks all 25 against IG.
 | `prices update` | tops a symbol up to now | weekly allowance |
 
 Once the stream is running, history only ever grows forward for free, and the
-metered REST calls are needed only to deepen the past. That is why the
-scheduled job is a **weekly backfill**, not an hourly update.
+metered REST calls are needed only to deepen the past. The only scheduled job
+is the stream; run `prices backfill` by hand when you want more history.
 
 ### IG's limits, measured 2026-09-21
 
@@ -124,13 +124,14 @@ epic has stopped streaming. Logs go to `logs/prices.log` (rotating, 10MB × 5).
 
 ```bash
 ./scripts/install_schedule.sh install-stream    # the collector, kept alive
-./scripts/install_schedule.sh install           # weekly backfill, Monday 06:10
 ./scripts/install_schedule.sh status
 ```
 
 The stream is a long-lived subscription under `KeepAlive`, so launchd restarts
-it if the socket drops. The backfill is a weekly job because the allowance it
-spends is a weekly pool.
+it if the socket drops. The weekly backfill is no longer scheduled: run
+`./scripts/run_backfill.sh` by hand, at most once a week since the allowance it
+spends is a weekly pool. `./scripts/install_schedule.sh uninstall` removes an
+old weekly agent.
 
 launchd rather than cron: a cron job on macOS runs without Full Disk Access and
 dies silently when the machine sleeps, whereas a launchd agent catches up after
