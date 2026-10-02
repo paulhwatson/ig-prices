@@ -12,12 +12,20 @@ than a bar that was never real.
 Not MARKET:<epic>, which IG rejects outright as of 2026-09-21 (Lightstreamer
 error 21), and not trading_ig: authentication is three headers and the
 lightstreamerEndpoint the login already returns (see IGClient).
+
+The feed can die without the process noticing: IG drops the subscription
+every few minutes and the client usually resubscribes on its own, but on
+2026-10-02 it carried on cycling while no data arrived for four hours. So
+wait() watches two things - the subscription staying lost, and prices going
+quiet while markets are open - and raises StreamStalled, so the process exits
+and launchd restarts it with a fresh login.
 """
 
 from __future__ import annotations
 
 import logging
 import threading
+import time
 from dataclasses import dataclass
 
 import pandas as pd
@@ -69,6 +77,35 @@ def _mid(bid: str | None, ask: str | None) -> float | None:
 
 DEFAULT_TIMEZONE = "Europe/London"
 
+# How long the subscription may stay lost before giving up on the client
+# restoring it. Normal drops are restored within seconds.
+RESUBSCRIBE_GRACE_SECONDS = 5 * 60
+# In-progress candles are republished on every tick, so with 25 instruments
+# open a quarter of an hour of silence means the feed is dead, not quiet.
+STALL_SECONDS = 15 * 60
+HEALTH_CHECK_INTERVAL_SECONDS = 30
+
+
+class StreamStalled(IGError):
+    """The feed stopped delivering and was not going to recover by itself."""
+
+
+def markets_expected_open(now: pd.Timestamp) -> bool:
+    """False over the weekend close, when silence is normal.
+
+    `now` is in IG's local time. FX, the last to close and first to open,
+    trades 22:00 Sunday to 22:00 Friday London time; an hour's margin at the
+    reopen gives the first ticks time to arrive.
+    """
+    weekday, hour = now.weekday(), now.hour
+    if weekday == 4:  # Friday
+        return hour < 22
+    if weekday == 5:  # Saturday
+        return False
+    if weekday == 6:  # Sunday
+        return hour >= 23
+    return True
+
 
 def parse_candle(
     epic: str, values: dict[str, str | None], timezone: str = DEFAULT_TIMEZONE
@@ -119,6 +156,11 @@ class HourlyCandleStream:
         self._timezone = timezone
         self._ls: LightstreamerClient | None = None
         self._stop = threading.Event()
+        # Monotonic times, written from Lightstreamer's threads. Not yet
+        # subscribed counts as lost, so a subscription that never lands is
+        # caught by the same grace period.
+        self._last_update_at = time.monotonic()
+        self._unsubscribed_at: float | None = time.monotonic()
 
     def start(self) -> None:
         if self._client.lightstreamer_endpoint is None:
@@ -147,7 +189,29 @@ class HourlyCandleStream:
         logger.info("subscribed to hourly candles: %s", ", ".join(self._epics))
 
     def wait(self, timeout: float | None = None) -> None:
-        self._stop.wait(timeout)
+        """Blocks until stop(), or the timeout; raises StreamStalled if the
+        feed dies first."""
+        deadline = None if timeout is None else time.monotonic() + timeout
+        while not self._stop.is_set():
+            remaining = None if deadline is None else deadline - time.monotonic()
+            if remaining is not None and remaining <= 0:
+                return
+            interval = HEALTH_CHECK_INTERVAL_SECONDS if remaining is None else min(remaining, HEALTH_CHECK_INTERVAL_SECONDS)
+            if self._stop.wait(interval):
+                return
+            problem = self.health_problem(time.monotonic(), pd.Timestamp.now(tz=self._timezone))
+            if problem is not None:
+                raise StreamStalled(problem)
+
+    def health_problem(self, now: float, wall_now: pd.Timestamp) -> str | None:
+        """Why the feed should be restarted, or None if it looks alive."""
+        unsubscribed_at = self._unsubscribed_at
+        if unsubscribed_at is not None and now - unsubscribed_at > RESUBSCRIBE_GRACE_SECONDS:
+            return f"subscription lost for {now - unsubscribed_at:.0f}s and not restored"
+        silent_for = now - self._last_update_at
+        if silent_for > STALL_SECONDS and markets_expected_open(wall_now):
+            return f"no price updates for {silent_for:.0f}s while markets are open"
+        return None
 
     def stop(self) -> None:
         self._stop.set()
@@ -155,7 +219,17 @@ class HourlyCandleStream:
             self._ls.disconnect()
             logger.info("candle stream disconnected")
 
+    def _subscribed(self) -> None:
+        lost_at, self._unsubscribed_at = self._unsubscribed_at, None
+        if lost_at is not None:
+            logger.info("candle stream subscribed (after %.0fs)", time.monotonic() - lost_at)
+
+    def _unsubscribed(self) -> None:
+        self._unsubscribed_at = time.monotonic()
+        logger.warning("candle stream unsubscribed")
+
     def _handle(self, epic: str, values: dict[str, str | None]) -> None:
+        self._last_update_at = time.monotonic()
         candle = parse_candle(epic, values, self._timezone)
         if candle is None:
             return
@@ -174,8 +248,11 @@ class _CandleListener(SubscriptionListener):
         epic = update.getItemName().split(":", 1)[1].rsplit(":", 1)[0]
         self._stream._handle(epic, {f: update.getValue(f) for f in STREAM_FIELDS})
 
+    def onSubscription(self) -> None:
+        self._stream._subscribed()
+
     def onSubscriptionError(self, code, message) -> None:
         logger.error("candle stream subscription error: code=%s message=%s", code, message)
 
     def onUnsubscription(self) -> None:
-        logger.warning("candle stream unsubscribed")
+        self._stream._unsubscribed()

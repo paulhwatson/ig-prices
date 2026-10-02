@@ -116,7 +116,7 @@ def _cmd_stream(config, groups, args) -> int:
     point: the REST backfill is metered, this is not.
     """
     from ig_prices.collect import CandleWriter
-    from ig_prices.ig_stream import HourlyCandleStream
+    from ig_prices.ig_stream import HourlyCandleStream, StreamStalled
 
     if args.group:
         try:
@@ -159,6 +159,11 @@ def _cmd_stream(config, groups, args) -> int:
     )
     try:
         stream.wait()
+    except StreamStalled as exc:
+        # A non-zero exit is the recovery: launchd's KeepAlive restarts the
+        # process, which logs in afresh.
+        logger.error("%s - exiting so the stream restarts", exc)
+        return 1
     except KeyboardInterrupt:
         logger.info("interrupted")
     finally:
