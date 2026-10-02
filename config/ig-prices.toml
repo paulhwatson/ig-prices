@@ -4,7 +4,7 @@
 [store]
 # Hourly parquet lands beside the existing 1min/daily stores, as
 # <root>/<group>/1hour/<symbol>.parquet - see ig_prices/store.py.
-root = "/Users/Paul/trading_data/prices"
+root = "~/ig-price-data"
 
 [update]
 # On an incremental update, re-fetch this many days of already-stored bars.
