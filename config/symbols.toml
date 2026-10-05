@@ -32,6 +32,24 @@ instruments = [
     { symbol = "RBUSD", ig_epic = "CC.D.RB.USS.IP",  ig_name = "No Lead Gasoline" },
     { symbol = "HOUSD", ig_epic = "CC.D.HO.USS.IP",  ig_name = "Heating Oil" },
     { symbol = "NGUSD", ig_epic = "CC.D.NG.USS.IP",  ig_name = "Natural Gas" },
+    # ICE London gas oil (USD/tonne) - diesel, a near substitute for heating oil
+    { symbol = "LGOUSD", ig_epic = "CC.D.LGO.USS.IP", ig_name = "London Gas Oil" },
+]
+
+[groups.softs]
+description = """Soft commodities, each listed in both New York and London so they \
+pair across exchanges. These trade ~7-9 hours a day, not around the clock, so \
+expect ~45 bars a week rather than ~115, and the two venues overlap for only \
+part of that. Symbols past the FMP era are the exchange root plus the \
+currency the contract is priced in; London cocoa is in GBP, so a cocoa spread \
+also carries GBP/USD."""
+instruments = [
+    { symbol = "CCUSD",  ig_epic = "CC.D.CC.USS.IP",  ig_name = "New York Cocoa" },
+    { symbol = "LCCGBP", ig_epic = "CC.D.LCC.USS.IP", ig_name = "London Cocoa" },
+    { symbol = "KCUSD",  ig_epic = "CC.D.KC.USS.IP",  ig_name = "Coffee Arabica" },
+    { symbol = "LKDUSD", ig_epic = "CC.D.LKD.USS.IP", ig_name = "Coffee Robusta" },
+    { symbol = "SBUSD",  ig_epic = "CC.D.SB.USS.IP",  ig_name = "NY Sugar No. 11" },
+    { symbol = "LSUUSD", ig_epic = "CC.D.LSU.USS.IP", ig_name = "London Sugar No. 5" },
 ]
 
 [groups.metals]

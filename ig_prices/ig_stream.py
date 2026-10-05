@@ -80,7 +80,7 @@ DEFAULT_TIMEZONE = "Europe/London"
 # How long the subscription may stay lost before giving up on the client
 # restoring it. Normal drops are restored within seconds.
 RESUBSCRIBE_GRACE_SECONDS = 5 * 60
-# In-progress candles are republished on every tick, so with 25 instruments
+# In-progress candles are republished on every tick, so with ~30 instruments
 # open a quarter of an hour of silence means the feed is dead, not quiet.
 STALL_SECONDS = 15 * 60
 HEALTH_CHECK_INTERVAL_SECONDS = 30

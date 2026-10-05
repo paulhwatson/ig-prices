@@ -48,7 +48,7 @@ zero delay, and does not stream shares or ETFs, which come back
 no equities or ETFs here.
 
 Every entry in `config/symbols.toml` names its IG epic, the loader rejects any
-that doesn't, and `ig-prices verify` re-checks all 25 against IG.
+that doesn't, and `ig-prices verify` re-checks all 32 against IG.
 
 ## Two ways in, and why both exist
 
@@ -68,7 +68,8 @@ is the stream; run `ig-prices backfill` by hand when you want more history.
   returns nothing.
 - **10,000 data points a week**, weekly and not reset by retry. A near-24h
   instrument is ~115 hourly bars a week, so a year is ~6,000 points for one
-  symbol and ~150,000 for all 25 — about fifteen weeks of allowance. Hence
+  symbol and ~170,000 for all 32 — about seventeen weeks of allowance (the
+  softs trade ~9 hours a day, so ~2,300 points a year each). Hence
   `backfill_days` (90) for a first reach, and weekly deepening after that.
 - **A separate per-minute request cap** returns the same HTTP 403 as a spent
   allowance, told apart only by the error code in the body. The client retries
