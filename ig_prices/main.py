@@ -116,7 +116,7 @@ def _cmd_stream(config, groups, args) -> int:
     point: the REST backfill is metered, this is not.
     """
     from ig_prices.collect import CandleWriter
-    from ig_prices.ig_stream import HourlyCandleStream, StreamStalled
+    from ig_prices.ig_stream import CandleStreams, StreamStalled
 
     if args.group:
         try:
@@ -144,7 +144,7 @@ def _cmd_stream(config, groups, args) -> int:
 
     writer = CandleWriter(config.store.root, instruments)
     client = IGClient(credentials, timeout_seconds=config.ig.timeout_seconds)
-    stream = HourlyCandleStream(client, writer.epics, writer, timezone=config.ig.timezone)
+    stream = CandleStreams(client, writer.epics, writer, timezone=config.ig.timezone)
 
     try:
         stream.start()
@@ -153,9 +153,9 @@ def _cmd_stream(config, groups, args) -> int:
         return 1
 
     logger.info(
-        "streaming hourly candles for %d instrument(s); a candle is stored as it "
-        "closes, so the first write lands on the hour",
-        len(instruments),
+        "streaming hourly candles for %d instrument(s) over %d connection(s); a candle "
+        "is stored as it closes, so the first write lands on the hour",
+        len(instruments), stream.connections,
     )
     try:
         stream.wait()

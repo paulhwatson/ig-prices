@@ -21,6 +21,9 @@
 #
 # Symbol names are kept from the FMP era so existing readers of the store keep
 # working. They name the series, not the vendor: every file here is IG data.
+# Symbols added since are the root of the IG epic plus the currency the
+# underlying is priced in (CC.D.HG.USS.IP -> HGUSD, CS.D.ZINC.TODAY.IP ->
+# ZINCUSD), so each traces straight back to its market.
 #
 # `ig_epic` is verified with `ig-prices verify`; `source` defaults to "ig".
 
@@ -40,9 +43,10 @@ instruments = [
 description = """Soft commodities, each listed in both New York and London so they \
 pair across exchanges. These trade ~7-9 hours a day, not around the clock, so \
 expect ~45 bars a week rather than ~115, and the two venues overlap for only \
-part of that. Symbols past the FMP era are the exchange root plus the \
-currency the contract is priced in; London cocoa is in GBP, so a cocoa spread \
-also carries GBP/USD."""
+part of that. London cocoa is priced in GBP, so a cocoa spread also carries \
+GBP/USD. Cotton, orange juice and lumber are single-venue and sit here as US \
+agricultural futures; orange juice and lumber trade only ~5-6 hours a day and \
+carry wide bid/offer spreads."""
 instruments = [
     { symbol = "CCUSD",  ig_epic = "CC.D.CC.USS.IP",  ig_name = "New York Cocoa" },
     { symbol = "LCCGBP", ig_epic = "CC.D.LCC.USS.IP", ig_name = "London Cocoa" },
@@ -50,6 +54,26 @@ instruments = [
     { symbol = "LKDUSD", ig_epic = "CC.D.LKD.USS.IP", ig_name = "Coffee Robusta" },
     { symbol = "SBUSD",  ig_epic = "CC.D.SB.USS.IP",  ig_name = "NY Sugar No. 11" },
     { symbol = "LSUUSD", ig_epic = "CC.D.LSU.USS.IP", ig_name = "London Sugar No. 5" },
+    { symbol = "CTUSD",  ig_epic = "CC.D.CT.USS.IP",  ig_name = "NY Cotton" },
+    { symbol = "OJUSD",  ig_epic = "CC.D.OJ.USS.IP",  ig_name = "NY Orange Juice" },
+    { symbol = "LXRUSD", ig_epic = "CC.D.LXR.USS.IP", ig_name = "Lumber" },
+]
+
+[groups.grains]
+description = """CBOT grains and the soybean complex. Soybeans crush into meal and \
+oil, and corn and wheat substitute as feed, so these pair within the group."""
+instruments = [
+    { symbol = "CUSD",  ig_epic = "CC.D.C.USS.IP",  ig_name = "Corn" },
+    { symbol = "WUSD",  ig_epic = "CC.D.W.USS.IP",  ig_name = "Chicago Wheat" },
+    { symbol = "SUSD",  ig_epic = "CC.D.S.USS.IP",  ig_name = "Soybeans" },
+    { symbol = "SMUSD", ig_epic = "CC.D.SM.USS.IP", ig_name = "Soybean Meal" },
+    { symbol = "BOUSD", ig_epic = "CC.D.BO.USS.IP", ig_name = "Soybean Oil" },
+]
+
+[groups.livestock]
+description = "Livestock futures. Lean hogs and feeder cattle are dated-only on IG, so live cattle has no partner here yet."
+instruments = [
+    { symbol = "LCUSD", ig_epic = "CC.D.LC.USS.IP", ig_name = "Live Cattle" },
 ]
 
 [groups.metals]
@@ -57,6 +81,21 @@ description = "Spot metals"
 instruments = [
     { symbol = "GCUSD", ig_epic = "CS.D.USCGC.TODAY.IP", ig_name = "Spot Gold" },
     { symbol = "SIUSD", ig_epic = "CS.D.USCSI.TODAY.IP", ig_name = "Spot Silver" },
+]
+
+[groups.industrial_metals]
+description = """LME base metals (spot), COMEX copper and iron ore. LME and COMEX \
+copper are one metal on two exchanges, like Brent/WTI, though US tariffs have \
+moved the gap between them. The LME metals other than copper carry bid/offer \
+spreads of ~0.4-1% of price, against ~0.05% for oil."""
+instruments = [
+    { symbol = "COPPERUSD",    ig_epic = "CS.D.COPPER.TODAY.IP",    ig_name = "Copper" },
+    { symbol = "HGUSD",        ig_epic = "CC.D.HG.USS.IP",          ig_name = "High Grade Copper" },
+    { symbol = "ALUMINIUMUSD", ig_epic = "CS.D.ALUMINIUM.TODAY.IP", ig_name = "Aluminium" },
+    { symbol = "ZINCUSD",      ig_epic = "CS.D.ZINC.TODAY.IP",      ig_name = "Zinc" },
+    { symbol = "NICKELUSD",    ig_epic = "CS.D.NICKEL.TODAY.IP",    ig_name = "Nickel" },
+    { symbol = "LEADUSD",      ig_epic = "CS.D.LEAD.TODAY.IP",      ig_name = "Lead" },
+    { symbol = "IRONUSD",      ig_epic = "CC.D.IRON.USS.IP",        ig_name = "Iron Ore" },
 ]
 
 [groups.indices]

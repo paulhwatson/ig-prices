@@ -114,3 +114,56 @@ def test_wait_returns_when_stopped(stream, monkeypatch):
     monkeypatch.setattr(ig_stream, "HEALTH_CHECK_INTERVAL_SECONDS", 0.01)
     stream._stop.set()
     stream.wait()
+
+
+# --- more instruments than one connection may carry -------------------------
+
+
+def test_split_respects_the_per_connection_cap():
+    epics = [f"E{i}" for i in range(48)]
+
+    batches = ig_stream.split_epics(epics, max_per_connection=30)
+
+    assert len(batches) == 2
+    assert all(len(batch) <= 30 for batch in batches)
+    assert sorted(e for batch in batches for e in batch) == sorted(epics)
+
+
+def test_a_config_that_fits_one_connection_stays_on_one():
+    epics = [f"E{i}" for i in range(30)]
+
+    assert ig_stream.split_epics(epics, max_per_connection=30) == [epics]
+
+
+def test_split_deals_round_robin_so_every_connection_gets_round_the_clock_fx():
+    """In config order the FX pairs come last; dealt in order they'd all land
+    on the final connection, leaving the others silent every night."""
+    epics = [f"SOFT{i}" for i in range(38)] + [f"FX{i}" for i in range(10)]
+
+    batches = ig_stream.split_epics(epics, max_per_connection=30)
+
+    assert all(any(e.startswith("FX") for e in batch) for batch in batches)
+
+
+def test_the_real_config_fits_under_the_cap():
+    from ig_prices.symbols import load_symbol_groups
+
+    epics = [i.ig_epic for _, i in load_symbol_groups().all_instruments()]
+    batches = ig_stream.split_epics(epics)
+
+    assert all(len(batch) <= ig_stream.MAX_ITEMS_PER_CONNECTION for batch in batches)
+
+
+def test_a_stall_on_any_connection_is_reported_with_which_one(clock):
+    streams = ig_stream.CandleStreams(
+        client=None, epics=[f"E{i}" for i in range(4)], on_candle=lambda candle: None, max_per_connection=2,
+    )
+    for s in streams._streams:
+        s._subscribed()
+    assert streams.health_problem(clock(), WEEKDAY) is None
+
+    clock.now += STALL_SECONDS + 1
+    streams._streams[0]._handle("E0", {})  # only connection 1 hears anything
+
+    problem = streams.health_problem(clock(), WEEKDAY)
+    assert problem is not None and problem.startswith("connection 2 of 2")

@@ -239,6 +239,83 @@ class HourlyCandleStream:
             logger.exception("failed to store candle for %s", epic)
 
 
+# IG caps how many items one Lightstreamer connection may subscribe: 32 hourly
+# candles subscribed fine, 48 were refused outright with "Subscription limit
+# exceeded" (2026-10-07), leaving the collector storing nothing. The cap is per
+# connection, not per account - a second connection took 16 more at once - so
+# instruments are spread over as many connections as needed, each held well
+# under it.
+MAX_ITEMS_PER_CONNECTION = 30
+
+
+def split_epics(epics: list[str], max_per_connection: int = MAX_ITEMS_PER_CONNECTION) -> list[list[str]]:
+    """Deal epics round-robin into the fewest connections that respect the cap.
+
+    Round-robin rather than in config order so every connection carries a
+    share of each group. That matters for the stall check: FX trades around
+    the clock, so a connection holding some FX is never legitimately silent
+    for long on a weekday, whereas one holding only softs or grains would be
+    silent most of every night and restart itself in a loop.
+    """
+    if max_per_connection < 1:
+        raise ValueError("max_per_connection must be at least 1")
+    count = max(1, -(-len(epics) // max_per_connection))
+    return [epics[i::count] for i in range(count) if epics[i::count]]
+
+
+class CandleStreams:
+    """HourlyCandleStream over as many connections as the per-connection cap needs.
+
+    Same start / wait / stop as a single stream. Each connection keeps its own
+    watchdog, and wait() raises StreamStalled if any one of them stalls - the
+    process then exits and launchd restarts the lot.
+    """
+
+    def __init__(
+        self, client: IGClient, epics: list[str], on_candle, timezone: str = DEFAULT_TIMEZONE,
+        max_per_connection: int = MAX_ITEMS_PER_CONNECTION,
+    ):
+        self._streams = [
+            HourlyCandleStream(client, batch, on_candle, timezone=timezone)
+            for batch in split_epics(list(epics), max_per_connection)
+        ]
+        self._timezone = timezone
+        self._stop = threading.Event()
+
+    @property
+    def connections(self) -> int:
+        return len(self._streams)
+
+    def start(self) -> None:
+        for stream in self._streams:
+            stream.start()
+
+    def health_problem(self, now: float, wall_now: pd.Timestamp) -> str | None:
+        for number, stream in enumerate(self._streams, start=1):
+            problem = stream.health_problem(now, wall_now)
+            if problem is not None:
+                return f"connection {number} of {len(self._streams)}: {problem}"
+        return None
+
+    def wait(self, timeout: float | None = None) -> None:
+        deadline = None if timeout is None else time.monotonic() + timeout
+        while not self._stop.is_set():
+            remaining = None if deadline is None else deadline - time.monotonic()
+            if remaining is not None and remaining <= 0:
+                return
+            interval = HEALTH_CHECK_INTERVAL_SECONDS if remaining is None else min(remaining, HEALTH_CHECK_INTERVAL_SECONDS)
+            if self._stop.wait(interval):
+                return
+            problem = self.health_problem(time.monotonic(), pd.Timestamp.now(tz=self._timezone))
+            if problem is not None:
+                raise StreamStalled(problem)
+
+    def stop(self) -> None:
+        self._stop.set()
+        for stream in self._streams:
+            stream.stop()
+
+
 class _CandleListener(SubscriptionListener):
     def __init__(self, stream: HourlyCandleStream):
         self._stream = stream
